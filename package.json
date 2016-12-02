@@ -1,0 +1,23 @@
+{
+  "name": "blazegraph",
+  "version": "0.0.0",
+  "description": "Blazegraph JavaScript API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nelson-ai/blazegraph-js.git"
+  },
+  "author": "Nelson a.i.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nelson-ai/blazegraph-js/issues"
+  },
+  "homepage": "https://github.com/nelson-ai/blazegraph-js#readme",
+  "dependencies": {
+    "n3": "^0.8.3",
+    "request": "^2.79.0"
+  }
+}
