@@ -1,6 +1,6 @@
 {
   "name": "blazegraph",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Blazegraph JavaScript API",
   "main": "index.js",
   "scripts": {
