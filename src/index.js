@@ -80,6 +80,8 @@ function readQuads(blazegraphUrl, input) {
   .then(nquads => new Promise((resolve, reject) => {
     const quads = [];
 
+    if (!nquads) return resolve(quads);
+
     parser.parse(nquads, (error, triple) => {
       if (error) return reject(error);
       if (triple) return quads.push(triple);
