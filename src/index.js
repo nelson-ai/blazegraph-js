@@ -1,7 +1,7 @@
 const request = require('request');
 const createRdfParser = require('n3').Parser;
 
-const nquadsMimeType = 'text/x-nquads';
+const nquadsMimeType = 'text/x-nquads; charset=utf-8';
 const parser = createRdfParser({ format: 'N-Quads' });
 
 /* ----------
@@ -112,7 +112,7 @@ function createQuads(blazegraphUrl, input) {
     headers: {
       'Content-Type': nquadsMimeType,
     },
-    body: inputs.map(serializeQuad).join('\n'),
+    body: inputs.map(serializeQuad).join(''),
   });
 }
 
