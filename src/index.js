@@ -2,7 +2,6 @@ const request = require('request');
 const createRdfParser = require('n3').Parser;
 
 const trigMimeType = 'application/x-trig; charset=utf-8';
-const parser = createRdfParser({ format: 'N-Quads' });
 
 /* ----------
     UTILS
@@ -81,8 +80,7 @@ function readQuads(blazegraphUrl, input) {
     const quads = [];
 
     if (!nquads) return resolve(quads);
-
-    parser.parse(nquads, (error, triple) => {
+    createRdfParser().parse(nquads, (error, triple) => {
       if (error) return reject(error);
       if (triple) return quads.push(triple);
 
