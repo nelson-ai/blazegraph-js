@@ -1,7 +1,7 @@
 const request = require('request');
 const createRdfParser = require('n3').Parser;
 
-const nquadsMimeType = 'text/x-nquads; charset=utf-8';
+const trigMimeType = 'application/x-trig; charset=utf-8';
 const parser = createRdfParser({ format: 'N-Quads' });
 
 /* ----------
@@ -49,10 +49,10 @@ function encodeQuad({ subject, predicate, object, graph }) {
   return url.slice(1);
 }
 
-// Serializes a quad into the nquad format (has to be complete)
+// Serializes a quad into the trig format (has to be complete)
 // NOTE: this middleware enforces the usage of named graph on every triple
 function serializeQuad({ subject, predicate, object, graph }) {
-  return `${subject} ${predicate} ${object} ${graph} .`;
+  return `${graph} { ${subject} ${predicate} ${object} . }`;
 }
 
 /* ---------------
@@ -110,7 +110,7 @@ function createQuads(blazegraphUrl, input) {
     url: blazegraphUrl,
     method: 'POST',
     headers: {
-      'Content-Type': nquadsMimeType,
+      'Content-Type': trigMimeType,
     },
     body: inputs.map(serializeQuad).join(''),
   });
@@ -131,7 +131,7 @@ function updateQuad(blazegraphUrl, input) {
 
   const oldQuad = serializeQuad(input);
   const newQuad = serializeQuad(Object.assign({}, input, { object: input.newObject }));
-  const options = { contentType: nquadsMimeType };
+  const options = { contentType: trigMimeType };
 
   return makeRequest({
     url: `${blazegraphUrl}?updatePost`,

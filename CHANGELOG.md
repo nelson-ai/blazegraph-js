@@ -4,7 +4,7 @@
 
 **Bug fixes:**
 - Fix readQuads bug when resolving empty result
-- Use UTF-8 charset for posting data
+- Use Trig Media type with UTF-8 charset for POSTing and PUTing data
 
 # 0.1.0
 
