@@ -2,10 +2,15 @@
 
 # tbd
 
+**New features:**
+- Added querySparql method
+- Added checkPatternExistence method
+- Added includeInferred option on readQuads
+
 **Bug fixes:**
-- Fix readQuads bug when resolving empty result
+- Fixed readQuads bug when resolving empty result
 - Use Trig Media type with UTF-8 charset for POSTing and PUTing data
-- Fix concurrent parsing bug
+- Fixed concurrent parsing bug
 
 # 0.1.0
 

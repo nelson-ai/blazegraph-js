@@ -7,7 +7,7 @@ const defaultOptions = {
 };
 
 function getClient(options = defaultOptions) {
-  const { host, port, namespace } = options;
+  const { host, port, namespace } = Object.assign({}, defaultOptions, options);
   const blazegraphUrl = `http://${host}:${port}/blazegraph/namespace/${namespace}/sparql`;
   const passUrl = fn => (...args) => fn(blazegraphUrl, ...args);
 

@@ -58,6 +58,48 @@ function serializeQuad({ subject, predicate, object, graph }) {
     MIDDLEWARE
 --------------- */
 
+// Perform a SPARQL query
+// NOTE: this does not allow to perform a SPARQL update query
+function querySparql(blazegraphUrl, query, includeInferred = false) {
+  if (!isValidString(query)) return Promise.reject(new Error('Query must be a non-empty string'));
+
+  return makeRequest({
+    url: `${blazegraphUrl}?query=${encodeQuery(query)}&includeInferred=${!!includeInferred}`,
+    headers: {
+      Accept: 'application/json',
+    },
+  })
+  .then(body => {
+    if (typeof body !== 'string') throw new Error('TODO: Learn when this is possible');
+
+    // Can throw ? Can be something else ?
+    return JSON.parse(body).results.bindings;
+  });
+}
+
+const resultRegex = /<data result="(\w*)"/;
+
+/*
+Returns true is some quads match a pattern
+{
+  subject?: <IRI>
+  predicate?: <IRI>
+  object?: <IRI> or "Literal"
+  graph?: <IRI>
+  graphs?: [<IRI>]
+}
+*/
+function checkPatternExistence(blazegraphUrl, input, includeInferred = false) {
+  if (isNotObject(input)) return rejectInput(input);
+
+  let fullUrl = `${blazegraphUrl}?HASSTMT&${encodeQuad(input)}&includeInferred=${!!includeInferred}`;
+
+  if (Array.isArray(input.graphs)) input.graphs.forEach(g => fullUrl += `&c=${g}`);
+
+  return makeRequest(fullUrl)
+  .then(result => result && typeof result === 'string' && resultRegex.exec(result)[1] === 'true');
+}
+
 /*
 Read all quads matching a pattern
 {
@@ -68,10 +110,10 @@ Read all quads matching a pattern
   graphs?: [<IRI>]
 }
 */
-function readQuads(blazegraphUrl, input) {
+function readQuads(blazegraphUrl, input, includeInferred = false) {
   if (isNotObject(input)) return rejectInput(input);
 
-  let fullUrl = `${blazegraphUrl}?GETSTMTS&includeInferred=false&${encodeQuad(input)}`;
+  let fullUrl = `${blazegraphUrl}?GETSTMTS&includeInferred=${!!includeInferred}&${encodeQuad(input)}`;
 
   if (Array.isArray(input.graphs)) input.graphs.forEach(g => fullUrl += `&c=${g}`);
 
@@ -192,6 +234,8 @@ function deleteSparql(blazegraphUrl, query) {
 }
 
 module.exports = {
+  querySparql,
+  checkPatternExistence,
   readQuads,
   createQuads,
   updateQuad,
