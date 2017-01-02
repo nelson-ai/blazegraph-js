@@ -17,12 +17,12 @@
   },
   "homepage": "https://github.com/nelson-ai/blazegraph-js#readme",
   "dependencies": {
-    "n3": "^0.8.3",
+    "n3": "^0.8.5",
     "request": "^2.79.0"
   },
   "devDependencies": {
-    "eslint": "^3.11.1",
-    "eslint-config-airbnb-base": "^10.0.1",
+    "eslint": "^3.12.2",
+    "eslint-config-nelson": "^0.1.0",
     "eslint-plugin-import": "^2.2.0"
   }
 }
