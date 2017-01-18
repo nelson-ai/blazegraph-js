@@ -1,20 +1,24 @@
+function isNonEmptyString(value) {
+  return value && typeof value === 'string';
+}
+
 function isStringOrNil(value) {
-  return typeof value === 'string'
+  return isNonEmptyString(value)
   || typeof value === 'undefined'
   || value === null;
 }
 
 function isTriple(t) {
   return typeof t === 'object'
-  && typeof t.subject === 'string'
-  && typeof t.predicate === 'string'
-  && typeof t.object === 'string';
+  && isNonEmptyString(t.subject)
+  && isNonEmptyString(t.predicate)
+  && isNonEmptyString(t.object);
 }
 
 function isDeleteTriple(t) {
   return typeof t === 'object'
-  && typeof t.subject === 'string'
-  && typeof t.predicate === 'string'
+  && isNonEmptyString(t.subject)
+  && isNonEmptyString(t.predicate)
   && isStringOrNil(t.object);
 }
 
@@ -23,8 +27,14 @@ function isUpdateTriple(t) {
   && isStringOrNil(t.oldObject);
 }
 
+function isQuad(q) {
+  return isTriple(q)
+  && isNonEmptyString(q.graph);
+}
+
 module.exports = {
   isTriple,
   isDeleteTriple,
   isUpdateTriple,
+  isQuad,
 };

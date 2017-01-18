@@ -77,6 +77,30 @@ function querySparql(blazegraphUrl, query, includeInferred = false) {
   });
 }
 
+// Perform a SPARQL update query
+// NOTE: this does not allow to perform any SPARQL query
+function updateSparql(blazegraphUrl, query) {
+  if (!isValidString(query)) return Promise.reject(new Error('Query must be a non-empty string'));
+
+  console.log(`${blazegraphUrl}?update=${encodeQuery(query)}`);
+  console.log(`${blazegraphUrl}?update=${encodeQuery(query)}`.length);
+
+  return makeRequest({
+    url: `${blazegraphUrl}?update=${encodeQuery(query)}`,
+    method: 'POST',
+  });
+}
+// Delete statements using a SPARQL CONSTRUCT or DESCRIBE query
+// NOTE: this does not allow to perform any SPARQL query
+function deleteSparql(blazegraphUrl, query) {
+  if (!isValidString(query)) return Promise.reject(new Error('Query must be a non-empty string'));
+
+  return makeRequest({
+    url: `${blazegraphUrl}?query=${encodeQuery(query)}`,
+    method: 'DELETE',
+  });
+}
+
 const resultRegex = /<data result="(\w*)"/;
 
 /*
@@ -122,6 +146,7 @@ function readQuads(blazegraphUrl, input, includeInferred = false) {
     const quads = [];
 
     if (!nquads) return resolve(quads);
+
     createRdfParser().parse(nquads, (error, triple) => {
       if (error) return reject(error);
       if (triple) return quads.push(triple);
@@ -189,16 +214,7 @@ function updateQuad(blazegraphUrl, input) {
   });
 }
 
-// Perform a SPARQL update query
-// NOTE: this does not allow to perform any SPARQL query
-function updateSparql(blazegraphUrl, query) {
-  if (!isValidString(query)) return Promise.reject(new Error('Query must be a non-empty string'));
 
-  return makeRequest({
-    url: `${blazegraphUrl}?update=${encodeQuery(query)}`,
-    method: 'POST',
-  });
-}
 
 /*
 Delete all quads matching a pattern
@@ -222,16 +238,7 @@ function deleteQuads(blazegraphUrl, input) {
   });
 }
 
-// Delete statements using a SPARQL CONSTRUCT or DESCRIBE query
-// NOTE: this does not allow to perform any SPARQL query
-function deleteSparql(blazegraphUrl, query) {
-  if (!isValidString(query)) return Promise.reject(new Error('Query must be a non-empty string'));
 
-  return makeRequest({
-    url: `${blazegraphUrl}?query=${encodeQuery(query)}`,
-    method: 'DELETE',
-  });
-}
 
 module.exports = {
   querySparql,
