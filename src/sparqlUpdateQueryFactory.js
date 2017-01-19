@@ -1,5 +1,5 @@
 const invariant = require('./utils/invariant');
-const { isTriple, isDeleteTriple, isUpdateTriple } = require('./utils/isTriple');
+const { isTriple, isDeleteTriple, isUpdateTriple } = require('./utils/validation');
 
 module.exports = updateSparql => class SparqlUpdateQuery {
 

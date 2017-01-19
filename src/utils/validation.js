@@ -24,17 +24,34 @@ function isDeleteTriple(t) {
 
 function isUpdateTriple(t) {
   return isTriple(t)
-  && isStringOrNil(t.oldObject);
+  && isStringOrNil(t.oldObject); // !
 }
 
 function isQuad(q) {
   return isTriple(q)
-  && isNonEmptyString(q.graph);
+  && isStringOrNil(q.graph);
+}
+
+function isUpdateQuad(q) {
+  return isQuad(q)
+  && isNonEmptyString(q.oldObject); // !
+}
+
+function isPattern(p) {
+  return typeof p === 'object'
+  && isStringOrNil(p.subject)
+  && isStringOrNil(p.predicate)
+  && isStringOrNil(p.object)
+  && isStringOrNil(p.graph);
 }
 
 module.exports = {
+  isNonEmptyString,
+  isStringOrNil,
   isTriple,
   isDeleteTriple,
   isUpdateTriple,
   isQuad,
+  isUpdateQuad,
+  isPattern,
 };

@@ -7,7 +7,7 @@ const defaultOptions = {
   namespace: 'kb',
 };
 
-function getClient(options = defaultOptions) {
+function getClient(options = {}) {
   // The "client" is just a collection of methods
   // with connection params passed as an URL
   const { host, port, namespace } = Object.assign({}, defaultOptions, options);
