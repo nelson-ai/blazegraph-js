@@ -4,6 +4,9 @@
   "description": "Blazegraph JavaScript API",
   "license": "MIT",
   "author": "David Hérault <dherault@nelson.ai> (https://github.com/dherault)",
+  "contributors": [
+    "Viliam Simko <viliam.simko@gmail.com> (https://github.com/vsimko)"
+  ],
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\""
