@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0
+
+**Breaking changes:**
+- new, functional style API (with the help of `ramda`)
+- using `axios` instead of `request`
+- deprecated `SparqlUpdateQuery.js` and replaced with functional-style API in `src/updater.js`
+
+**New features:**
+- unit tests including a docker-compose.yml
+- using `SELECT`, `UPDATE`, `DELETE` template literals
+
 ## 0.2.0
 
 **Breaking changes:**
