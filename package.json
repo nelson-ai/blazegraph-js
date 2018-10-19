@@ -1,6 +1,6 @@
 {
   "name": "blazegraph",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Blazegraph JavaScript API",
   "license": "MIT",
   "author": "David Hérault <dherault@nelson.ai> (https://github.com/dherault)",
@@ -9,7 +9,9 @@
   ],
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\""
+    "up": "cd test && docker-compose up -d",
+    "down": "cd test && docker-compose down",
+    "ps": "cd test && docker-compose ps"
   },
   "repository": {
     "type": "git",
