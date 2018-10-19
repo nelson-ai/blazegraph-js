@@ -1,49 +1,31 @@
-function isNonEmptyString(value) {
-  return value && typeof value === 'string';
-}
+const isNonEmptyString = value => value && typeof value === 'string';
+const isStringOrNil = value =>
+  isNonEmptyString(value) || typeof value === 'undefined' || value === null;
 
-function isStringOrNil(value) {
-  return isNonEmptyString(value)
-  || typeof value === 'undefined'
-  || value === null;
-}
+const isTriple = t =>
+  typeof t === 'object' &&
+  isNonEmptyString(t.subject) &&
+  isNonEmptyString(t.predicate) &&
+  isNonEmptyString(t.object);
 
-function isTriple(t) {
-  return typeof t === 'object'
-  && isNonEmptyString(t.subject)
-  && isNonEmptyString(t.predicate)
-  && isNonEmptyString(t.object);
-}
+const isDeleteTriple = t =>
+  typeof t === 'object' &&
+  isNonEmptyString(t.subject) &&
+  isNonEmptyString(t.predicate) &&
+  isStringOrNil(t.object);
 
-function isDeleteTriple(t) {
-  return typeof t === 'object'
-  && isNonEmptyString(t.subject)
-  && isNonEmptyString(t.predicate)
-  && isStringOrNil(t.object);
-}
+const isUpdateTriple = t => isTriple(t) && isStringOrNil(t.oldObject); // !
 
-function isUpdateTriple(t) {
-  return isTriple(t)
-  && isStringOrNil(t.oldObject); // !
-}
+const isQuad = q => isTriple(q) && isStringOrNil(q.graph);
 
-function isQuad(q) {
-  return isTriple(q)
-  && isStringOrNil(q.graph);
-}
+const isUpdateQuad = q => isQuad(q) && isNonEmptyString(q.oldObject); // !
 
-function isUpdateQuad(q) {
-  return isQuad(q)
-  && isNonEmptyString(q.oldObject); // !
-}
-
-function isPattern(p) {
-  return typeof p === 'object'
-  && isStringOrNil(p.subject)
-  && isStringOrNil(p.predicate)
-  && isStringOrNil(p.object)
-  && isStringOrNil(p.graph);
-}
+const isPattern = p =>
+  typeof p === 'object' &&
+  isStringOrNil(p.subject) &&
+  isStringOrNil(p.predicate) &&
+  isStringOrNil(p.object) &&
+  isStringOrNil(p.graph);
 
 module.exports = {
   isNonEmptyString,
