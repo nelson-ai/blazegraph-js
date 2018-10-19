@@ -24,8 +24,9 @@
   },
   "homepage": "https://github.com/nelson-ai/blazegraph-js#readme",
   "dependencies": {
+    "axios": "^0.18.0",
     "n3": "^0.9.0",
-    "request": "^2.79.0"
+    "ramda": "^0.25.0"
   },
   "devDependencies": {
     "eslint": "^3.13.1",
