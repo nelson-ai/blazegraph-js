@@ -1,6 +1,13 @@
-const request = require('request');
-const createRdfParser = require('n3').Parser;
-const { isNonEmptyString, isQuad, isUpdateQuad, isPattern } = require('./utils/validation');
+const { compose, replace, join, filter, identity } = require('ramda');
+const { Parser: createRdfParser } = require('n3');
+const axios = require('axios');
+
+const {
+  isNonEmptyString,
+  isQuad,
+  isUpdateQuad,
+  isPattern,
+} = require('./utils/validation');
 
 const trigMimeType = 'application/x-trig; charset=utf-8';
 
@@ -8,187 +15,216 @@ const trigMimeType = 'application/x-trig; charset=utf-8';
   UTILS
 ------ */
 
-// Simple promise wrapper around the 'request' library
-function makeRequest(options) {
-  return new Promise((resolve, reject) => {
-    request(options, (error, response, body) => (error || response.statusCode !== 200 ? reject : resolve)(body || error));
-  });
-}
+/** Simple promise wrapper around the 'request' library */
+const makeRequest = options =>
+  axios({
+    ...options,
+    validateStatus: status => status === 200,
+  }).then(result => result.data);
 
-function rejectInput(input) {
+const rejectInput = input => {
   const error = new Error(`Invalid input: ${JSON.stringify(input)}`);
   // Remove this function's frame from the stack
   Error.captureStackTrace(error, rejectInput);
 
   return Promise.reject(error);
-}
+};
 
-// URI encodes a SPARQL query
-function encodeQuery(query) {
-  return encodeURIComponent(query.replace('\n', ' ').replace('\t', ''));
-}
+/** URI encodes a SPARQL query */
+const encodeQuery = compose(
+  encodeURIComponent,
+  replace('\t', ''),
+  replace('\n', ' ')
+);
+
+const urlparam = (name, val) => val && `&${name}=${encodeURIComponent(val)}`;
+const filterValidUrlParams = filter(identity);
 
 // URI encodes a pattern
-function encodePattern({ subject, predicate, object, graph }) {
-  let url = '';
-
-  if (subject) url += `&s=${encodeURIComponent(subject)}`;
-  if (predicate) url += `&p=${encodeURIComponent(predicate)}`;
-  if (object) url += `&o=${encodeURIComponent(object)}`;
-  if (graph) url += `&c=${encodeURIComponent(graph)}`;
-
-  return url.slice(1);
-}
+const encodePattern = ({ subject, predicate, object, graph }) =>
+  compose(
+    join('&'),
+    filterValidUrlParams
+  )([
+    urlparam('s', subject),
+    urlparam('p', predicate),
+    urlparam('o', object),
+    urlparam('c', graph),
+  ]);
 
 // Serializes a triple or quad into the trig format
-function serializeTrig({ subject, predicate, object, graph }) {
+const serializeTrig = ({ subject, predicate, object, graph }) => {
   const s = `${subject} ${predicate} ${object} .`;
 
   return graph ? `${graph} { ${s} }` : s;
-}
+};
 
 /* -----------
   MIDDLEWARE
 ----------- */
 
-// Perform a SPARQL query
-// NOTE: this does not allow to perform a SPARQL update query
-function querySparql(blazegraphUrl, query, includeInferred = false) {
-  if (!isNonEmptyString(query)) return Promise.reject(new Error('Query must be a non-empty string'));
+/**
+ * Perform a SPARQL query
+ * NOTE: this does not allow to perform a SPARQL update query
+ */
+const querySparql = (query, withInferred = false) => blazeUrl => {
+  if (!isNonEmptyString(query)) {
+    return Promise.reject(new Error('Query must be a non-empty string'));
+  }
 
   return makeRequest({
-    url: `${blazegraphUrl}?query=${encodeQuery(query)}&includeInferred=${!!includeInferred}`,
+    url: `${blazeUrl}?query=${encodeQuery(
+      query
+    )}&includeInferred=${!!withInferred}`,
     headers: {
       Accept: 'application/json',
     },
-  })
-  .then(body => {
-    if (typeof body !== 'string') throw new Error('TODO: Learn when this is possible');
+  }).then(json => json.results.bindings);
+};
 
-    // Can throw ? Can be something else ?
-    return JSON.parse(body).results.bindings;
-  });
-}
-
-// Perform a SPARQL update query
-// NOTE: this does not allow to perform any other SPARQL query
-function updateSparql(blazegraphUrl, query) {
-  if (!isNonEmptyString(query)) return Promise.reject(new Error('Query must be a non-empty string'));
+/**
+ * Perform a SPARQL update, insert or delete.
+ * NOTE: this does not allow to perform any other SPARQL query
+ */
+const updateSparql = query => blazeUrl => {
+  if (!isNonEmptyString(query)) {
+    return Promise.reject(new Error('Query must be a non-empty string'));
+  }
 
   return makeRequest({
-    url: `${blazegraphUrl}?update=${encodeQuery(query)}`,
-    method: 'POST',
+    method: 'post',
+    url: `${blazeUrl}?update=${encodeQuery(query)}`,
   });
-}
+};
 
-// Delete statements using a SPARQL CONSTRUCT or DESCRIBE query
-// NOTE: this does not allow to perform any other SPARQL query
-function deleteSparql(blazegraphUrl, query) {
-  if (!isNonEmptyString(query)) return Promise.reject(new Error('Query must be a non-empty string'));
+/**
+ * Delete statements using a SPARQL CONSTRUCT or DESCRIBE query.
+ * NOTE: this does not allow to perform any other SPARQL query.
+ */
+const deleteSparql = query => blazeUrl => {
+  if (!isNonEmptyString(query)) {
+    return Promise.reject(new Error('Query must be a non-empty string'));
+  }
 
   return makeRequest({
-    url: `${blazegraphUrl}?query=${encodeQuery(query)}`,
     method: 'DELETE',
+    url: `${blazeUrl}?query=${encodeQuery(query)}`,
   });
-}
+};
 
-/*
-Returns true is some quads match a pattern
-{
-  subject?: <IRI>
-  predicate?: <IRI>
-  object?: <IRI> or "Literal"
-  graph?: <IRI>
-  graphs?: [<IRI>]
-}
-*/
-function checkPatternExistence(blazegraphUrl, input, includeInferred = false) {
+/**
+ * Returns true is some quads match a pattern
+ * @example
+ * {
+ *   subject?: <IRI>
+ *   predicate?: <IRI>
+ *   object?: <IRI> or "Literal"
+ *   graph?: <IRI>
+ *   graphs?: [<IRI>]
+ * }
+ */
+const checkPatternExistence = (input, withInferred = false) => blazeUrl => {
   if (!isPattern(input)) return rejectInput(input);
 
-  let fullUrl = `${blazegraphUrl}?HASSTMT&includeInferred=${!!includeInferred}&${encodePattern(input)}`;
+  let fullUrl = `${blazeUrl}?HASSTMT&includeInferred=${!!withInferred}&${encodePattern(
+    input
+  )}`;
 
-  if (Array.isArray(input.graphs)) input.graphs.forEach(g => fullUrl += `&c=${g}`);
+  if (Array.isArray(input.graphs)) {
+    input.graphs.forEach(g => (fullUrl += `&c=${g}`));
+  }
 
-  return makeRequest(fullUrl)
-  .then(result => isNonEmptyString(result) && /<data result="(\w*)"/.exec(result)[1] === 'true');
-}
+  return makeRequest(fullUrl).then(
+    result =>
+      isNonEmptyString(result) &&
+      /<data result="(\w*)"/.exec(result)[1] === 'true'
+  );
+};
 
-/*
-Read all quads matching a pattern
-{
-  subject?: <IRI>
-  predicate?: <IRI>
-  object?: <IRI> or "Literal"
-  graph?: <IRI>
-  graphs?: [<IRI>]
-}
-*/
-function readQuads(blazegraphUrl, input, includeInferred = false) {
+/**
+ * Read all quads matching a pattern
+ * @example
+ * {
+ *   subject?: <IRI>
+ *   predicate?: <IRI>
+ *   object?: <IRI> or "Literal"
+ *   graph?: <IRI>
+ *   graphs?: [<IRI>]
+ * }
+ */
+const readQuads = (input, withInferred = false) => async blazeUrl => {
   if (!isPattern(input)) return rejectInput(input);
 
-  let fullUrl = `${blazegraphUrl}?GETSTMTS&includeInferred=${!!includeInferred}&${encodePattern(input)}`;
+  let fullUrl = `${blazeUrl}?GETSTMTS&includeInferred=${!!withInferred}&${encodePattern(
+    input
+  )}`;
 
-  if (Array.isArray(input.graphs)) input.graphs.forEach(g => fullUrl += `&c=${g}`);
+  if (Array.isArray(input.graphs)) {
+    input.graphs.forEach(g => (fullUrl += `&c=${g}`));
+  }
 
-  return makeRequest(fullUrl)
-  .then(nquads => new Promise((resolve, reject) => {
+  const nquads = await makeRequest({ url: fullUrl });
+  if (!nquads) return [];
+
+  return new Promise((resolve, reject) => {
     const quads = [];
-
-    if (!nquads) return resolve(quads);
-
     createRdfParser().parse(nquads, (error, triple) => {
       if (error) return reject(error);
       if (triple) return quads.push(triple);
 
       resolve(quads);
     });
-  }));
-}
+  });
+};
 
-/*
-Create one or more quads
-{
-  subject: <IRI>
-  predicate: <IRI>
-  object: <IRI> or "Literal"
-  graph?: <IRI>
-}
-Input can also be an array of quads
-*/
-function createQuads(blazegraphUrl, input) {
+/**
+ * Create one or more quads.
+ * Input can also be an array of quads.
+ * @example
+ * {
+ *   subject: <IRI>
+ *   predicate: <IRI>
+ *   object: <IRI> or "Literal"
+ *   graph?: <IRI>
+ * }
+ */
+const createQuads = input => blazeUrl => {
   const inputs = Array.isArray(input) ? input : [input];
 
   if (inputs.some(quad => !isQuad(quad))) return rejectInput(input);
 
   return makeRequest({
-    url: blazegraphUrl,
+    url: blazeUrl,
     method: 'POST',
     headers: {
       'Content-Type': trigMimeType,
     },
     body: inputs.map(serializeTrig).join(''),
   });
-}
+};
 
-/*
-Update a quad knowing its old statement
-{
-  subject: <IRI>
-  predicate: <IRI>
-  oldObject: <IRI> or "Literal", from the old statement
-  object: <IRI> or "Literal", defines the new statement
-  graph?: <IRI>
-}
-*/
-function updateQuad(blazegraphUrl, input) {
-  if (!isUpdateQuad(input)) return rejectInput(input);
+/**
+ * Update a quad knowing its old statement.
+ * @example
+ * {
+ *   subject: <IRI>
+ *   predicate: <IRI>
+ *   oldObject: <IRI> or "Literal", from the old statement
+ *   object: <IRI> or "Literal", defines the new statement
+ *   graph?: <IRI>
+ * }
+ */
+const updateQuad = input => blazeUrl => {
+  if (!isUpdateQuad(input)) {
+    return rejectInput(input);
+  }
 
-  const oldQuad = serializeTrig(Object.assign({}, input, { object: input.oldObject }));
+  const oldQuad = serializeTrig({ ...input, object: input.oldObject });
   const newQuad = serializeTrig(input);
   const options = { contentType: trigMimeType };
 
   return makeRequest({
-    url: `${blazegraphUrl}?updatePost`,
+    url: `${blazeUrl}?updatePost`,
     method: 'POST',
     formData: {
       remove: {
@@ -201,29 +237,34 @@ function updateQuad(blazegraphUrl, input) {
       },
     },
   });
-}
+};
 
-/*
-Delete all quads matching a pattern
-{
-  subject?: <IRI>
-  predicate?: <IRI>
-  object?: <IRI> or "Literal"
-  graph?: <IRI>
-}
-*/
-function deleteQuads(blazegraphUrl, input) {
-  if (!isPattern(input)) return rejectInput(input);
+/**
+ * Delete all quads matching a pattern.
+ * @example
+ * {
+ *   subject?: <IRI>
+ *   predicate?: <IRI>
+ *   object?: <IRI> or "Literal"
+ *   graph?: <IRI>
+ * }
+ */
+const deleteQuads = input => blazeUrl => {
+  if (!isPattern(input)) {
+    return rejectInput(input);
+  }
 
   const params = encodePattern(input);
 
-  if (!params) throw new Error('You almost deleted the whole database!');
+  if (!params) {
+    return Promise.reject(new Error('You almost deleted the whole database!'));
+  }
 
   return makeRequest({
-    url: `${blazegraphUrl}?${params}`,
+    url: `${blazeUrl}?${params}`,
     method: 'DELETE',
   });
-}
+};
 
 module.exports = {
   querySparql,
