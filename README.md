@@ -13,20 +13,49 @@
 
 Many (undocumented yet) methods are available. Have a look at the source for more info.
 
+### preparation
 ```js
-const db = require('blazegraph')({
+const {prepareBlazeUrl} = require('blazegraph')
+const db = prepareBlazeUrl({
   host: 'localhost',
   port: 9999,
   namespace: 'kb', // Those are the default values, passing no params yields the same result
 });
+```
 
-db.readQuads({
-  predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
-  object: '<http://example.com/Person>',
-})
-.then(quads => {
-  console.log(quads); // An array of objects of the shape { subject, predicate, object, graph }
-});
+### sparql query - output written to the console
+```js
+const {composeP} = require('ramda')
+const {SELECT} = require('blazegraph')
+composeP(
+  console.log, // An array of objects of the shape { subject, predicate, object, graph }
+  SELECT`select * { ?s ?p ?o } limit 10`,
+)(db)
+```
+
+### read quads - output written to the console
+```js
+const {composeP} = require('ramda')
+const {readQuads} = require('blazegraph')
+composeP(
+  console.log, // An array of objects of the shape { subject, predicate, object, graph }
+  readQuads({
+    predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
+    object: '<http://example.com/Person>',
+  })
+)(db)
+```
+
+### single pipeline using default options
+```js
+const {composeP} = require('ramda')
+const {SELECT, prepareBlazeUrl} = require('blazegraph')
+
+composeP(
+  console.log,
+  SELECT`select * { ?s ?p ?o } limit 10`,
+  prepareBlazeUrl
+)()
 ```
 
 ## Note
