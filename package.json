@@ -9,6 +9,8 @@
   ],
   "main": "src/index.js",
   "scripts": {
+    "test": "jest",
+    "lint": "eslint .",
     "up": "cd test && docker-compose up -d",
     "down": "cd test && docker-compose down",
     "ps": "cd test && docker-compose ps"
@@ -28,6 +30,11 @@
   "devDependencies": {
     "eslint": "^3.13.1",
     "eslint-config-nelson": "^0.2.0",
-    "eslint-plugin-import": "^2.2.0"
+    "eslint-plugin-import": "^2.2.0",
+    "jest": "23.0.0",
+    "jest-cli": "23.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node"
   }
 }

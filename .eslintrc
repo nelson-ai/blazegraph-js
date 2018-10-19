@@ -1,3 +1,6 @@
 {
-  "extends": "nelson"
+  "extends": "nelson",
+  "env": {
+    "jest": true
+  }
 }
