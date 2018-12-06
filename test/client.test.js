@@ -1,82 +1,82 @@
+const { expect } = require("chai")
+
 const {
   prepareBlazeUrl,
   SELECT,
   UPDATE,
   deleteQuads,
-  readQuads,
-} = require('../src');
-const { pipeP, type, compose } = require('ramda');
+  readQuads
+} = require("../src")
+const { pipeP, type, compose } = require("ramda")
 const {
   addPrefix,
   addDelete,
   addInsert,
   addUpdate,
   queryToString,
-  withGraph,
-} = require('../src/updater');
-const { SPARQL } = require('../src/sparql');
+  withGraph
+} = require("../src/updater")
+const { SPARQL } = require("../src/sparql")
 
-const blazeUrl = prepareBlazeUrl(); // use defaults
+const blazeUrl = prepareBlazeUrl() // use defaults
 
 // test utilities
-const expectToContain = str => result => expect(result).toContain(str);
-const expectType = t => result => expect(type(result) === t).toBeTruthy();
+const expectToContain = str => result => expect(result).contains(str)
+const expectType = t => result => expect(type(result) === t).to.be.true
 const blazeTest = testname => (...args) =>
-  it(testname, () => pipeP(...args)(blazeUrl));
+  it(testname, () => pipeP(...args)(blazeUrl))
 
-describe('blazegraph client', () => {
-  it('should use proper default blazeUrl', () => {
-    expect(blazeUrl).toEqual(
-      'http://localhost:9999/bigdata/namespace/kb/sparql'
-    );
-  });
+describe("blazegraph client", () => {
+  it("should use proper default blazeUrl", () => {
+    expect(blazeUrl).equals("http://localhost:9999/bigdata/namespace/kb/sparql")
+  })
 
-  blazeTest('should support SPARQL: INSERT DATA')(
+  blazeTest("should support SPARQL: INSERT DATA")(
     UPDATE`
       prefix test: <http://example.com/>
       insert data { test:JohnDoe a test:Person }
     `,
-    expectToContain('COMMIT')
-  );
+    expectToContain("COMMIT")
+  )
 
-  blazeTest('should support SPARQL: DELETE DATA')(
+  blazeTest("should support SPARQL: DELETE DATA")(
     UPDATE`
       prefix test: <http://example.com/>
       delete data { test:JonDeleted a test:Person }
     `,
-    expectToContain('COMMIT')
-  );
+    expectToContain("COMMIT")
+  )
 
-  blazeTest('should support SPARQL: SELECT queries')(
+  blazeTest("should support SPARQL: SELECT queries")(
     SELECT`
       prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>
       select * {
           ?s rdfs:label ?label
       } limit 10
     `,
-    expectType('Array')
-  );
+    expectType("Array")
+  )
 
-  blazeTest('should support deleteQuads')(
+  blazeTest("should support deleteQuads")(
     deleteQuads({
-      subject: '<http://test#Person>',
-      predicate: '<http://www.w3.org/2000/01/rdf-schema#label>',
-      object: '"Hello"',
+      subject: "<http://test#Person>",
+      predicate: "<http://www.w3.org/2000/01/rdf-schema#label>",
+      object: "\"Hello\""
     }),
-    expectToContain('modified')
-  );
+    expectToContain("modified")
+  )
 
-  blazeTest('should support readQuads')(
+  blazeTest("should support readQuads")(
     readQuads({
-      predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
-      object: '<http://example.com/Person>',
+      predicate: "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>",
+      object: "<http://example.com/Person>"
     }),
-    expectType('Array')
-  );
-});
+    expectType("Array")
+  )
+})
 
-describe('sparql builder', () => {
-  it('can compose query', () => {
+describe("sparql builder", () => {
+  it("can compose query", () => {
     compose(
       expectToContain(SPARQL`
         PREFIX rdf: <http://rdf>
@@ -88,15 +88,15 @@ describe('sparql builder', () => {
         OPTIONAL { :s :p ?x2 }
       `),
       queryToString,
-      addPrefix('rdfs', 'http://rdfs'),
-      addPrefix('rdf', 'http://rdf'),
-      withGraph('http://mygraph'),
-      addUpdate({ subject: ':s', predicate: ':p', object: ':o8' }),
-      addUpdate({ subject: ':s', predicate: ':p', object: ':o9' }),
-      addInsert({ subject: ':s', predicate: ':p', object: ':o1' }),
-      addInsert({ subject: ':s', predicate: ':p', object: ':o2' }),
-      addInsert({ subject: ':s', predicate: ':p', object: ':o3' }),
-      addDelete({ subject: ':s', predicate: ':p', object: ':o2' })
-    )();
-  });
-});
+      addPrefix("rdfs", "http://rdfs"),
+      addPrefix("rdf", "http://rdf"),
+      withGraph("http://mygraph"),
+      addUpdate({ subject: ":s", predicate: ":p", object: ":o8" }),
+      addUpdate({ subject: ":s", predicate: ":p", object: ":o9" }),
+      addInsert({ subject: ":s", predicate: ":p", object: ":o1" }),
+      addInsert({ subject: ":s", predicate: ":p", object: ":o2" }),
+      addInsert({ subject: ":s", predicate: ":p", object: ":o3" }),
+      addDelete({ subject: ":s", predicate: ":p", object: ":o2" })
+    )()
+  })
+})

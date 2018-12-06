@@ -1,10 +1,10 @@
-const { replace, compose, join, flatten, zip } = require('ramda');
+const { replace, compose, join, flatten, zip } = require("ramda")
 
 // simple helper functions
 
-const removeLeadingSpaces = replace(/^(\n| )+/g, '');
-const removeTrailingSpaces = replace(/\n+ +/g, '\n');
-const removeFinalNewline = replace(/\n$/, '');
+const removeLeadingSpaces = replace(/^(\n| )+/g, "")
+const removeTrailingSpaces = replace(/\n+ +/g, "\n")
+const removeFinalNewline = replace(/\n$/, "")
 
 // Public API
 
@@ -24,12 +24,12 @@ const SPARQL = (str, ...vars) =>
     removeFinalNewline,
     removeTrailingSpaces,
     removeLeadingSpaces,
-    join(''), // now just a string
+    join(""), // now just a string
     flatten, // now merged into a single array
     zip(str), // str and vars are arrays
-    arr => [...arr, '']
-  )(vars);
+    arr => [...arr, ""]
+  )(vars)
 
 module.exports = {
-  SPARQL,
-};
+  SPARQL
+}

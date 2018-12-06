@@ -1,31 +1,31 @@
-const isNonEmptyString = value => value && typeof value === 'string';
+const isNonEmptyString = value => value && typeof value === "string"
 const isStringOrNil = value =>
-  isNonEmptyString(value) || typeof value === 'undefined' || value === null;
+  isNonEmptyString(value) || typeof value === "undefined" || value === null
 
 const isTriple = t =>
-  typeof t === 'object' &&
+  typeof t === "object" &&
   isNonEmptyString(t.subject) &&
   isNonEmptyString(t.predicate) &&
-  isNonEmptyString(t.object);
+  isNonEmptyString(t.object)
 
 const isDeleteTriple = t =>
-  typeof t === 'object' &&
+  typeof t === "object" &&
   isNonEmptyString(t.subject) &&
   isNonEmptyString(t.predicate) &&
-  isStringOrNil(t.object);
+  isStringOrNil(t.object)
 
-const isUpdateTriple = t => isTriple(t) && isStringOrNil(t.oldObject); // !
+const isUpdateTriple = t => isTriple(t) && isStringOrNil(t.oldObject) // !
 
-const isQuad = q => isTriple(q) && isStringOrNil(q.graph);
+const isQuad = q => isTriple(q) && isStringOrNil(q.graph)
 
-const isUpdateQuad = q => isQuad(q) && isNonEmptyString(q.oldObject); // !
+const isUpdateQuad = q => isQuad(q) && isNonEmptyString(q.oldObject) // !
 
 const isPattern = p =>
-  typeof p === 'object' &&
+  typeof p === "object" &&
   isStringOrNil(p.subject) &&
   isStringOrNil(p.predicate) &&
   isStringOrNil(p.object) &&
-  isStringOrNil(p.graph);
+  isStringOrNil(p.graph)
 
 module.exports = {
   isNonEmptyString,
@@ -35,5 +35,5 @@ module.exports = {
   isUpdateTriple,
   isQuad,
   isUpdateQuad,
-  isPattern,
-};
+  isPattern
+}

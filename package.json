@@ -7,13 +7,15 @@
   "contributors": [
     "Viliam Simko <viliam.simko@gmail.com> (https://github.com/vsimko)"
   ],
-  "main": "src/index.js",
+  "main": "src/index",
   "scripts": {
-    "test": "jest",
+    "test": "mocha",
     "lint": "eslint .",
+    "release": "standard-version",
     "up": "cd test && docker-compose up -d",
     "down": "cd test && docker-compose down",
-    "ps": "cd test && docker-compose ps"
+    "ps": "cd test && docker-compose ps",
+    "git-cred": "git config credential.helper store"
   },
   "repository": {
     "type": "git",
@@ -29,13 +31,16 @@
     "ramda": "^0.25.0"
   },
   "devDependencies": {
-    "eslint": "^3.13.1",
-    "eslint-config-nelson": "^0.2.0",
-    "eslint-plugin-import": "^2.2.0",
-    "jest": "23.0.0",
-    "jest-cli": "23.0.0"
-  },
-  "jest": {
-    "testEnvironment": "node"
+    "@types/chai": "^4.1.4",
+    "@types/mocha": "^5.2.3",
+    "chai": "^4.1.2",
+    "eslint": "^4.19.1",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.12.0",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "mocha": "^5.2.0",
+    "standard-version": "^4.4.0"
   }
 }
