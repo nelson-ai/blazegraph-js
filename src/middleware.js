@@ -1,6 +1,7 @@
+// @ts-check
 const { compose, replace, join, filter, identity } = require("ramda")
 const { Parser: createRdfParser } = require("n3")
-const axios = require("axios")
+const { default: axios } = require("axios")
 
 const {
   isNonEmptyString,
@@ -15,7 +16,10 @@ const trigMimeType = "application/x-trig; charset=utf-8"
   UTILS
 ------ */
 
-/** Simple promise wrapper around the 'request' library */
+/**
+ * Simple promise wrapper around the 'axios' library
+ * @param {import("axios").AxiosRequestConfig} options
+ */
 const makeRequest = options =>
   axios({
     ...options,
@@ -134,7 +138,8 @@ const checkPatternExistence = (input, withInferred = false) => blazeUrl => {
     input.graphs.forEach(g => (fullUrl += `&c=${g}`))
   }
 
-  return makeRequest(fullUrl).then(
+  // TODO: this needs to be checked because it was makeRequest(fullUrl) before running @ts-check
+  return makeRequest({ url: fullUrl }).then(
     result =>
       isNonEmptyString(result) &&
       /<data result="(\w*)"/.exec(result)[1] === "true"
@@ -199,7 +204,7 @@ const createQuads = input => blazeUrl => {
     headers: {
       "Content-Type": trigMimeType
     },
-    body: inputs.map(serializeTrig).join("")
+    data: inputs.map(serializeTrig).join("")
   })
 }
 
@@ -226,7 +231,8 @@ const updateQuad = input => blazeUrl => {
   return makeRequest({
     url: `${blazeUrl}?updatePost`,
     method: "POST",
-    formData: {
+    // TODO: check this because it was formData befor running @ts-check
+    data: {
       remove: {
         options,
         value: oldQuad

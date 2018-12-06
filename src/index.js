@@ -1,3 +1,4 @@
+// @ts-check
 const { compose, merge } = require("ramda")
 const { SPARQL } = require("./sparql")
 const {
@@ -8,15 +9,16 @@ const {
 } = require("./middleware")
 
 const defaultOptions = {
-  host: "localhost",
+  hostname: "localhost",
   port: 9999,
   namespace: "kb",
   blazename: "bigdata" // it was 'blazegraph' before
 }
 
+/** @type {(config:{ hostname?:string, port?:number, namespace?:string, blazename?:string }) => string} */
 const prepareBlazeUrl = compose(
-  ({ host, port, namespace, blazename }) =>
-    `http://${host}:${port}/${blazename}/namespace/${namespace}/sparql`,
+  ({ hostname, port, namespace, blazename }) =>
+    `http://${hostname}:${port}/${blazename}/namespace/${namespace}/sparql`,
   merge(defaultOptions),
   merge({})
 )

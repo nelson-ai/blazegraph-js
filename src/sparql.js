@@ -1,3 +1,4 @@
+// @ts-check
 const { replace, compose, join, flatten, zip } = require("ramda")
 
 // simple helper functions
@@ -11,15 +12,18 @@ const removeFinalNewline = replace(/\n$/, "")
 /**
  * String interpolation function that formats
  * SPARQL code by removing leading spaces from each line.
+ * This function is pure.
+ * @author Viliam Simko
  * @example
  *   const q = SPARQL`
  *     select * from {?s ?p ?o}
  *   `
  *   console.log(q) // -> "select * from {?s ?p ?o}"
- * @author Viliam Simko
- * @note pure function
+ *
+ * @param {string[]} str
  */
 const SPARQL = (str, ...vars) =>
+  // @ts-ignore because we have more than 6 arguments of the compose function
   compose(
     removeFinalNewline,
     removeTrailingSpaces,
