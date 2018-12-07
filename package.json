@@ -1,6 +1,6 @@
 {
   "name": "blazegraph",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "Blazegraph JavaScript API",
   "license": "MIT",
   "author": "David Hérault <dherault@nelson.ai> (https://github.com/dherault)",
@@ -27,19 +27,19 @@
   "homepage": "https://github.com/nelson-ai/blazegraph-js#readme",
   "dependencies": {
     "axios": "^0.18.0",
-    "n3": "^0.9.0",
-    "ramda": "^0.25.0"
+    "n3": "^1.0.1",
+    "ramda": "^0.26.1"
   },
   "devDependencies": {
-    "@types/chai": "^4.1.4",
-    "@types/mocha": "^5.2.3",
-    "chai": "^4.1.2",
-    "eslint": "^4.19.1",
-    "eslint-config-standard": "^11.0.0",
-    "eslint-plugin-import": "^2.12.0",
-    "eslint-plugin-node": "^6.0.1",
-    "eslint-plugin-promise": "^3.8.0",
-    "eslint-plugin-standard": "^3.1.0",
+    "@types/chai": "^4.1.7",
+    "@types/mocha": "^5.2.5",
+    "chai": "^4.2.0",
+    "eslint": "^5.9.0",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-node": "^8.0.0",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0",
     "mocha": "^5.2.0",
     "standard-version": "^4.4.0"
   }
