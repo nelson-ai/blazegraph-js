@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.0.0"></a>
+# [2.0.0](https://github.com/nelson-ai/blazegraph-js/compare/v1.0.0...v2.0.0) (2018-12-08)
+
+
+### Features
+
+* redesigned the API, added type annotations for easier development (e.g. in vscode) ([52257ec](https://github.com/nelson-ai/blazegraph-js/commit/52257ec))
+
+
+### BREAKING CHANGES
+
+* - all functions are now provided through the prepareBlaze factory
+  the function parametrized everything with the provided config structure
+- SELECT, UPDATE, DELETE are literal templates
+
+
+
 <a name="1.0.0"></a>
 # [1.0.0](https://github.com/nelson-ai/blazegraph-js/compare/v0.2.0...v1.0.0) (2018-12-07)
 
