@@ -1,6 +1,6 @@
 const { expect } = require("chai")
 
-const { pipeP, type, compose, reduce } = require("ramda")
+const { pipeP, type, compose } = require("ramda")
 const {
   addPrefix,
   addDelete,

@@ -1,61 +1,45 @@
 # Blazegraph JavaScript API
 
-[![npm version](https://badge.fury.io/js/blazegraph.svg)](https://www.npmjs.com/package/blazegraph)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
-
 [Blazegraph](https://www.blazegraph.com/) JavaScript API.
+This version has been completely rewritten and the new API is still evolving.
 
 ## Installation
 
-`npm install blazegraph --save`
+`yarn add https://github.com/seronet-project/blazegraph-js`
 
 ## Usage
 
 Many (undocumented yet) methods are available. Have a look at the source for more info.
 
 ### preparation
+
 ```js
-const {prepareBlazeUrl} = require('blazegraph')
-const db = prepareBlazeUrl({
-  host: 'localhost',
+const { prepareBlaze } = require("blazegraph");
+const { SELECT, UPDATE } = prepareBlaze({
+  host: "localhost",
   port: 9999,
-  namespace: 'kb', // Those are the default values, passing no params yields the same result
+  namespace: "kb" // Those are the default values, passing no params yields the same result
 });
 ```
 
 ### sparql query - output written to the console
+
 ```js
-const {composeP} = require('ramda')
-const {SELECT} = require('blazegraph')
-composeP(
-  console.log, // An array of objects of the shape { subject, predicate, object, graph }
-  SELECT`select * { ?s ?p ?o } limit 10`,
-)(db)
+// simple async example
+const results = await SELECT`select * { ?s ?p ?o } limit 10`;
+console.log(results);
 ```
 
-### read quads - output written to the console
-```js
-const {composeP} = require('ramda')
-const {readQuads} = require('blazegraph')
-composeP(
-  console.log, // An array of objects of the shape { subject, predicate, object, graph }
-  readQuads({
-    predicate: '<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>',
-    object: '<http://example.com/Person>',
-  })
-)(db)
-```
+### sparql query - asynchronous pipeline with ramda
 
-### single pipeline using default options
 ```js
-const {composeP} = require('ramda')
-const {SELECT, prepareBlazeUrl} = require('blazegraph')
-
-composeP(
-  console.log,
-  SELECT`select * { ?s ?p ?o } limit 10`,
-  prepareBlazeUrl
-)()
+const { pipeP, pluck } = require("ramda");
+await pipeP(
+  () => SELECT`select * {?s ?p ?o}`, // 1. query
+  pluck("p"), // 2. extract only properties
+  pluck("value"), // 3. extract value from each property
+  console.log // 4. write results to console
+)();
 ```
 
 ## Note
@@ -66,6 +50,13 @@ The current API is quite specific to Nelson, but feel free to PR breaking change
 ## Contributing
 
 Yes, thank you. Please lint, ~~update/write tests~~ and add your name to the package.json file before you PR.
+
+## Original version available here:
+
+[![npm version](https://badge.fury.io/js/blazegraph.svg)](https://www.npmjs.com/package/blazegraph)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](#contributing)
+
+`npm install blazegraph --save`
 
 ## License
 
