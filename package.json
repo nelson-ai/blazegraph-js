@@ -8,15 +8,6 @@
     "Viliam Simko <viliam.simko@gmail.com> (https://github.com/vsimko)"
   ],
   "main": "src/index",
-  "scripts": {
-    "test": "mocha",
-    "lint": "eslint .",
-    "release": "standard-version",
-    "up": "cd test && docker-compose up -d",
-    "down": "cd test && docker-compose down",
-    "ps": "cd test && docker-compose ps",
-    "git-cred": "git config credential.helper store"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nelson-ai/blazegraph-js.git"
@@ -42,5 +33,16 @@
     "eslint-plugin-standard": "^4.0.0",
     "mocha": "^5.2.0",
     "standard-version": "^4.4.0"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "mocha",
+    "test:up": "cd test && docker-compose up -d",
+    "test:down": "cd test && docker-compose down",
+    "test:ps": "cd test && docker-compose ps",
+    "release": "standard-version",
+    "release:push": "git push --follow-tags origin master",
+    "release:npm": "yarn publish",
+    "git-cred": "git config credential.helper store"
   }
 }

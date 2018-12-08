@@ -21,6 +21,7 @@ const removeFinalNewline = replace(/\n$/, "")
  *   console.log(q) // -> "select * from {?s ?p ?o}"
  *
  * @param {string[]} str
+ * @param {string[]} vars
  */
 const SPARQL = (str, ...vars) =>
   // @ts-ignore because we have more than 6 arguments of the compose function

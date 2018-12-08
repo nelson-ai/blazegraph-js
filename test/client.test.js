@@ -1,13 +1,6 @@
 const { expect } = require("chai")
 
-const {
-  prepareBlazeUrl,
-  SELECT,
-  UPDATE,
-  deleteQuads,
-  readQuads
-} = require("../src")
-const { pipeP, type, compose } = require("ramda")
+const { pipeP, type, compose, reduce } = require("ramda")
 const {
   addPrefix,
   addDelete,
@@ -16,19 +9,21 @@ const {
   queryToString,
   withGraph
 } = require("../src/updater")
+
+const { prepareBlaze } = require("../src")
 const { SPARQL } = require("../src/sparql")
 
-const blazeUrl = prepareBlazeUrl() // use defaults
+const { SELECT, UPDATE, blazeUri, deleteQuads, readQuads } = prepareBlaze() // use defaults
 
 // test utilities
 const expectToContain = str => result => expect(result).contains(str)
 const expectType = t => result => expect(type(result) === t).to.be.true
-const blazeTest = testname => (...args) =>
-  it(testname, () => pipeP(...args)(blazeUrl))
+const blazeTest = testname => /** @param {Promise} prom */ (prom, ...funs) =>
+  it(testname, async () => pipeP(...funs)(await prom))
 
 describe("blazegraph client", () => {
   it("should use proper default blazeUrl", () => {
-    expect(blazeUrl).equals("http://localhost:9999/bigdata/namespace/kb/sparql")
+    expect(blazeUri).equals("http://localhost:9999/bigdata/namespace/kb/sparql")
   })
 
   blazeTest("should support SPARQL: INSERT DATA")(
