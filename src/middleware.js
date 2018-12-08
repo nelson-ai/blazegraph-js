@@ -261,7 +261,7 @@ const deleteQuads = blazeUrl =>
       return Promise.reject(new Error("You almost deleted the whole database!"))
     }
 
-    return axios.delete(`${blazeUrl}?${params}`)
+    return axios.delete(`${blazeUrl}?${params}`).then(result => result.data)
   }
 
 module.exports = {
