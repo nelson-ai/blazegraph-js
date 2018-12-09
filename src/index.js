@@ -27,7 +27,7 @@ const defaultConfig = {
  * @template T
  * @param {(a:string) => Promise<T>} fn
  */
-const tmpl = fn => /** @param {string[]} str */ (str, ...vars) => {
+const tmpl = fn => /** @param {TemplateStringsArray} str */ (str, ...vars) => {
   const sparql = SPARQL(str, ...vars)
   return fn(sparql)
 }
