@@ -1,4 +1,5 @@
 // @ts-check
+
 const { replace, compose, join, flatten, zip } = require("ramda")
 
 // simple helper functions
@@ -24,7 +25,6 @@ const removeFinalNewline = replace(/\n$/, "")
  * @param {string[]} vars
  */
 const SPARQL = (str, ...vars) =>
-  // @ts-ignore because we have more than 6 arguments of the compose function
   compose(
     removeFinalNewline,
     removeTrailingSpaces,
@@ -32,6 +32,7 @@ const SPARQL = (str, ...vars) =>
     join(""), // now just a string
     flatten, // now merged into a single array
     zip(str), // str and vars are arrays
+    // @ts-ignore because we have more than 6 arguments of the compose function
     arr => [...arr, ""]
   )(vars)
 

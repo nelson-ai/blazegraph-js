@@ -1,3 +1,4 @@
+//@ts-check
 const { expect } = require("chai")
 
 const { pipeP, type, compose } = require("ramda")

@@ -1,12 +1,27 @@
 {
   "extends": [
-    "standard"
+    "eslint:recommended"
   ],
   "env": {
-    "mocha": true
+    "mocha": true,
+    "es6": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018
   },
   "rules": {
-    "indent": "off",
-    "quotes": ["error", "double"]
+    "indent": [
+      "error",
+      2
+    ],
+    "linebreak-style": [
+      "error",
+      "unix"
+    ],
+    "quotes": [
+      "error",
+      "double"
+    ]
   }
 }

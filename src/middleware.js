@@ -6,9 +6,11 @@
  * @typedef {import("n3").Quad} Quad
  */
 
-const { compose, replace, join, filter, identity } = require("ramda")
-const { Parser: createRdfParser } = require("n3")
+const { compose, replace } = require("ramda")
 const { default: axios } = require("axios")
+
+const n3 = require("n3")
+const createRdfParser = () => new n3.Parser()
 
 const {
   isNonEmptyString,
@@ -54,22 +56,18 @@ const encodeQuery = compose(
  * @param {string} val
  */
 const urlparam = (name, val) => val && `${name}=${encodeURIComponent(val)}`
-const filterValidUrlParams = filter(identity)
 
 /**
- * URI encodes a pattern
+ * encode a pattern into "s=...&p=..&o=...&c=..."
  * @param {{subject:IRI, predicate:IRI, object:IRI|Literal, graph:IRI}} $1
  */
 const encodePattern = ({ subject, predicate, object, graph }) =>
-  compose(
-    join("&"),
-    filterValidUrlParams
-  )([
+  [
     urlparam("s", subject),
     urlparam("p", predicate),
     urlparam("o", object),
     urlparam("c", graph)
-  ])
+  ].join("&")
 
 /**
  * Serializes a triple or quad into the trig format

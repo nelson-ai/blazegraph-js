@@ -1,3 +1,5 @@
+// @ts-check
+
 /** @param {string} value */
 const isNonEmptyString = value => value && typeof value === "string"
 

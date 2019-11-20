@@ -33,7 +33,7 @@ const tmpl = fn => /** @param {TemplateStringsArray} str */ (str, ...vars) => {
 }
 
 /** @param {BlazegraphConfig} userConfig */
-const prepareBlaze = userConfig => {
+const prepareBlaze = (userConfig = {}) => {
   const config = merge(defaultConfig, userConfig)
   const { hostname, port, blazename, namespace } = config
   const blazeUri = `http://${hostname}:${port}/${blazename}/namespace/${namespace}/sparql`
