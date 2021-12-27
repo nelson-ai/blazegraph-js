@@ -1,6 +1,6 @@
 {
   "name": "blazegraph",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Blazegraph JavaScript API",
   "license": "MIT",
   "author": "David Hérault <dherault@nelson.ai> (https://github.com/dherault)",
