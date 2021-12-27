@@ -12,10 +12,12 @@ export declare const prepareBlaze: (userConfig?: Partial<BlazegraphConfig>) => {
         type: string;
         value: string;
     }>[]>;
+    /** Use as: SELECT`your sparql query` = querySparql without inferred triples. */
     SELECT: (str: TemplateStringsArray, ...vars: string[]) => Promise<Record<string, {
         type: string;
         value: string;
     }>[]>;
+    /** Use as: SELECT`your sparql query` = querySparql with inferred triples.  */
     SELECTWI: (str: TemplateStringsArray, ...vars: string[]) => Promise<Record<string, {
         type: string;
         value: string;

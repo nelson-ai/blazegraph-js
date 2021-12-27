@@ -9,8 +9,9 @@ const defaultConfig = {
     hostname: "localhost",
     port: 9999,
     namespace: "kb",
-    blazename: "bigdata"
+    blazename: "bigdata" // it was 'blazegraph' in older versions
 };
+/** Helper function that wraps other functions as template literals. */
 const tmpl = (fn) => (str, ...vars) => {
     const sparql = (0, sparql_1.SPARQL)(str, ...vars);
     return fn(sparql);
@@ -24,7 +25,9 @@ const prepareBlaze = (userConfig = {}) => {
         blazeUri,
         UPDATE: tmpl((0, middleware_1.updateSparql)(blazeUri)),
         DELETE: tmpl((0, middleware_1.deleteSparql)(blazeUri)),
+        /** Use as: SELECT`your sparql query` = querySparql without inferred triples. */
         SELECT: tmpl((0, middleware_1.querySparql)(blazeUri)),
+        /** Use as: SELECT`your sparql query` = querySparql with inferred triples.  */
         SELECTWI: tmpl(str => (0, middleware_1.querySparql)(blazeUri)(str, true)),
         deleteSparql: (0, middleware_1.deleteSparql)(blazeUri),
         querySparql: (0, middleware_1.querySparql)(blazeUri),

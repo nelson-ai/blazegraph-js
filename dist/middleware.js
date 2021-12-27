@@ -20,17 +20,24 @@ const n3_1 = require("n3");
 const types_1 = require("./types");
 const zod_1 = require("zod");
 const trigMimeType = "application/x-trig; charset=utf-8";
+/**
+ * Simple promise wrapper around the 'axios' library
+ */
 function makeRequest(options, resultSchema) {
     return __awaiter(this, void 0, void 0, function* () {
         const results = yield (0, axios_1.default)(Object.assign(Object.assign({}, options), { validateStatus: status => status === 200 }));
         return resultSchema.parse(results.data);
     });
 }
-const encodeQuery = (0, ramda_1.compose)(encodeURIComponent, (0, ramda_1.replace)(/[\t ]+/g, " "), (0, ramda_1.replace)(/(^|\n)\s*#.*(\n|$)/g, ""));
+/** URI encodes a SPARQL query */
+const encodeQuery = (0, ramda_1.compose)(encodeURIComponent, (0, ramda_1.replace)(/[\t ]+/g, " "), // remove long spaces
+(0, ramda_1.replace)(/(^|\n)\s*#.*(\n|$)/g, "") // remove single line comments
+);
 function urlParam(name, val) {
     const strVal = String(val);
     return `${name}=${encodeURIComponent(strVal)}`;
 }
+/** Encode a pattern into "s=...&p=..&o=...&c=..." */
 const urlEncodePattern = (p) => {
     const list = [];
     if (p.subject)
@@ -43,10 +50,18 @@ const urlEncodePattern = (p) => {
         list.push(urlParam("c", p.graph));
     return list.join("&");
 };
+/** Serializes a triple or quad into the trig format. */
 const serializeTrig = ({ subject, predicate, object, graph }) => {
     const s = `${subject} ${predicate} ${object} .`;
     return graph ? `${graph} { ${s} }` : s;
 };
+/* -----------
+  MIDDLEWARE
+----------- */
+/**
+ * Perform a SPARQL query
+ * NOTE: this does not allow to perform a SPARQL update query
+ */
 const querySparql = (blazeUrl) => (query, withInferred = false) => __awaiter(void 0, void 0, void 0, function* () {
     const data = yield makeRequest({
         method: "GET",
@@ -71,6 +86,11 @@ function parseCommitResults(result) {
         update: parseKV(second.replace(/^COMMIT:\s+/, ""))
     };
 }
+/**
+ * Perform a SPARQL update, insert or delete.
+ * NOTE: this does not allow to perform any other SPARQL query.
+ * TODO: parse result as HTML and extract more parameters
+ */
 const updateSparql = (blazeUrl) => (query) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield makeRequest({
         method: "POST",
@@ -80,6 +100,11 @@ const updateSparql = (blazeUrl) => (query) => __awaiter(void 0, void 0, void 0, 
     return parseCommitResults(result);
 });
 exports.updateSparql = updateSparql;
+/**
+ * Delete statements using a SPARQL CONSTRUCT or DESCRIBE query.
+ * NOTE: this does not allow to perform any other SPARQL query.
+ * TODO: this function has never been tested
+ */
 const deleteSparql = (blazeUrl) => (query) => __awaiter(void 0, void 0, void 0, function* () {
     const data = yield makeRequest({
         method: "DELETE",
@@ -89,8 +114,12 @@ const deleteSparql = (blazeUrl) => (query) => __awaiter(void 0, void 0, void 0, 
 });
 exports.deleteSparql = deleteSparql;
 const ZCheckPatternExistenceResult = zod_1.z.string().nonempty();
+/**
+ * Returns true is some quads match a pattern.
+ */
 const checkPatternExistence = (blazeUrl) => (input, withInferred = false) => __awaiter(void 0, void 0, void 0, function* () {
     const parse = types_1.ZPartialGraphPattern.parse(input);
+    // TODO: simplify this block
     let fullUrl = `${blazeUrl}?HASSTMT&includeInferred=${withInferred}&${urlEncodePattern(parse)}`;
     if (Array.isArray(parse.graphs)) {
         for (const g of parse.graphs) {
@@ -104,8 +133,10 @@ const checkPatternExistence = (blazeUrl) => (input, withInferred = false) => __a
     return matched[1] === "true";
 });
 exports.checkPatternExistence = checkPatternExistence;
+/** Read all quads matching a pattern. */
 const readQuads = (blazeUrl) => (input, withInferred = false) => __awaiter(void 0, void 0, void 0, function* () {
     const parse = types_1.ZPartialGraphPattern.parse(input);
+    // TODO: simplify this block
     let fullUrl = `${blazeUrl}?GETSTMTS&includeInferred=${withInferred}&${urlEncodePattern(parse)}`;
     if (Array.isArray(parse.graphs)) {
         for (const g of parse.graphs) {
@@ -115,8 +146,10 @@ const readQuads = (blazeUrl) => (input, withInferred = false) => __awaiter(void 
     const result = yield makeRequest({ url: fullUrl }, zod_1.z.string());
     if (result === "")
         return [];
+    // The n3 parser uses a call back for parsing the results.
+    // We need to transform it to a promise-based API.
     return new Promise((resolve, reject) => {
-        const quads = [];
+        const quads = []; // filled by the parser
         const rdfParser = new n3_1.Parser();
         rdfParser.parse(result, (error, triple) => {
             if (error)
@@ -128,6 +161,7 @@ const readQuads = (blazeUrl) => (input, withInferred = false) => __awaiter(void 
     });
 });
 exports.readQuads = readQuads;
+/** Create one or more quads. */
 const createQuads = (blazeUrl) => (input) => __awaiter(void 0, void 0, void 0, function* () {
     const inputs = Array.isArray(input) ? input : [input];
     const parse = types_1.ZQuadPattern.array().parse(inputs);
@@ -139,6 +173,7 @@ const createQuads = (blazeUrl) => (input) => __awaiter(void 0, void 0, void 0, f
     }, zod_1.z.string());
 });
 exports.createQuads = createQuads;
+/** Update a quad knowing its old statement. */
 const updateQuad = (blazeUrl) => (input) => __awaiter(void 0, void 0, void 0, function* () {
     const parse = types_1.ZUpdateQuadPattern.parse(input);
     const oldQuad = serializeTrig(Object.assign(Object.assign({}, parse), { object: parse.oldObject }));
@@ -154,6 +189,7 @@ const updateQuad = (blazeUrl) => (input) => __awaiter(void 0, void 0, void 0, fu
     }, zod_1.z.string());
 });
 exports.updateQuad = updateQuad;
+/** Delete all quads matching a pattern. */
 const deleteQuads = (blazeUrl) => (input) => __awaiter(void 0, void 0, void 0, function* () {
     const parse = types_1.ZQuadPattern.partial().parse(input);
     const params = urlEncodePattern(parse);
