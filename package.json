@@ -1,6 +1,6 @@
 {
   "name": "blazegraph",
-  "version": "3.0.1",
+  "version": "3.0.3",
   "description": "Blazegraph JavaScript API",
   "license": "MIT",
   "author": "David Hérault <dherault@nelson.ai> (https://github.com/dherault)",
@@ -44,7 +44,7 @@
     "ts-node": "^10.4.0"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig-build.json",
     "clean": "rimraf dist",
     "lint": "eslint src",
     "test": "mocha -r ts-node/register test/**/*.test.ts",
