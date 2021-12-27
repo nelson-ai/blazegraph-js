@@ -1,10 +1,8 @@
-// @ts-check
-
-const { replace, compose, join, flatten, zip } = require("ramda")
+import {compose, flatten, join, replace, zip} from "ramda";
 
 // simple helper functions
 
-const removeLeadingSpaces = replace(/^(\n| )+/g, "")
+const removeLeadingSpaces = replace(/^([\n ])+/g, "")
 const removeTrailingSpaces = replace(/\n+ +/g, "\n")
 const removeFinalNewline = replace(/\n$/, "")
 
@@ -20,11 +18,8 @@ const removeFinalNewline = replace(/\n$/, "")
  *     select * from {?s ?p ?o}
  *   `
  *   console.log(q) // -> "select * from {?s ?p ?o}"
- *
- * @param {TemplateStringsArray} str
- * @param {string[]} vars
  */
-const SPARQL = (str, ...vars) =>
+export const SPARQL = (str: TemplateStringsArray, ...vars: string[]): string =>
   compose(
     removeFinalNewline,
     removeTrailingSpaces,
@@ -32,10 +27,5 @@ const SPARQL = (str, ...vars) =>
     join(""), // now just a string
     flatten, // now merged into a single array
     zip(str), // str and vars are arrays
-    // @ts-ignore because we have more than 6 arguments of the compose function
     arr => [...arr, ""]
   )(vars)
-
-module.exports = {
-  SPARQL
-}

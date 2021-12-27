@@ -1,33 +1,31 @@
-//@ts-check
-
-const {
-  compose,
-  join,
-  assocPath,
-  over,
-  mapObjIndexed,
-  complement,
-  isEmpty,
-  prop,
-  map,
+import {IRI} from "./types";
+import {
   append,
-  when,
-  isNil,
-  lensProp,
-  unless,
-  groupBy,
-  values,
-  juxt,
-  filter,
   assoc,
-  curry
-} = require("ramda")
+  assocPath,
+  complement,
+  compose,
+  filter,
+  groupBy,
+  isEmpty,
+  isNil,
+  join,
+  juxt,
+  lensProp,
+  map,
+  mapObjIndexed,
+  over,
+  prop,
+  unless,
+  values,
+  when
+} from "ramda";
 
 // simple helper functions
 
-const maybeEmptyList = when(isNil, () => [])
-const prependStr = pstr => oldstr => `${pstr} ${oldstr}`
-const addTripleAt = at => triple => over(lensProp(at), append(triple))
+const maybeEmptyList = when(isNil, () => []);
+const prependStr = (prefix: string) => (original: string): string => `${prefix} ${original}`;
+const addTripleAt = at => triple => over(lensProp(at), append(triple));
 
 // string generators
 
@@ -38,7 +36,7 @@ const compactAndStringifyTriples = compose(
     compose(
       prependStr(subject),
       join("; "),
-      map(({ predicate, object }) => `${predicate} ${object}`)
+      map(({predicate, object}) => `${predicate} ${object}`)
     )(poList)
   ),
   groupBy(prop("subject")),
@@ -71,18 +69,17 @@ const whereStatementsToStr = compose(
   prop("whereStatements")
 )
 
-const withGraphToStr = ({ graphIri }) => (graphIri ? `WITH ${graphIri}` : "")
+const withGraphToStr = ({graphIri}: { graphIri: IRI }): string => (graphIri ? `WITH ${graphIri}` : "");
 
 // Public API
 
-const withGraph = iri => assoc("graphIri", iri)
-const addPrefix = curry((key, url) => assocPath(["prefixes", key], url))
-const addInsert = addTripleAt("insertStatements")
-const addDelete = triple =>
+export const withGraph = (iri: IRI) => assoc("graphIri", iri)
+export const addPrefix = (key: string, url: string) => assocPath(["prefixes", key], url);
+export const addInsert = addTripleAt("insertStatements")
+export const addDelete = triple =>
   compose(
     addTripleAt("deleteStatements")(triple),
     q => {
-      // TODO: this is still imperative, impure and ugly
       if (!triple.object) {
         if (q.varSeq) q.varSeq++
         else q.varSeq = 1
@@ -94,16 +91,16 @@ const addDelete = triple =>
 
       return q
     }
-  )
+  );
 
-const addUpdate = triple =>
+export const addUpdate = triple =>
   compose(
     addInsert(triple),
-    addDelete({ ...triple, object: triple.oldObject })
-  )
+    addDelete({...triple, object: triple.oldObject})
+  );
 
 /** Converts query object into query string */
-const queryToString = compose(
+export const queryToString = compose(
   join("\n"),
   filter(complement(isEmpty)), // only non-empty elements
   juxt([
@@ -113,13 +110,4 @@ const queryToString = compose(
     insertStatementsToStr,
     whereStatementsToStr
   ])
-)
-
-module.exports = {
-  addPrefix,
-  addInsert,
-  addDelete,
-  addUpdate,
-  withGraph,
-  queryToString
-}
+);

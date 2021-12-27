@@ -1,13 +1,17 @@
 {
   "name": "blazegraph",
-  "version": "2.0.7",
+  "version": "3.0.0",
   "description": "Blazegraph JavaScript API",
   "license": "MIT",
   "author": "David Hérault <dherault@nelson.ai> (https://github.com/dherault)",
   "contributors": [
     "Viliam Simko <viliam.simko@gmail.com> (https://github.com/vsimko)"
   ],
-  "main": "src/index",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nelson-ai/blazegraph-js.git"
@@ -17,21 +21,33 @@
   },
   "homepage": "https://github.com/nelson-ai/blazegraph-js#readme",
   "dependencies": {
-    "axios": "^0.21.1",
-    "n3": "^1.3.0",
-    "ramda": "^0.26.1"
+    "axios": "0.24.0",
+    "n3": "1.12.2",
+    "ramda": "0.27.1",
+    "ts-invariant": "0.9.4",
+    "zod": "3.11.6"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.5",
-    "@types/mocha": "^5.2.7",
-    "chai": "^4.2.0",
-    "eslint": "^6.6.0",
-    "mocha": "^6.2.2",
-    "standard-version": "^7.0.1"
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.11.7",
+    "@types/chai-as-promised": "^7.1.4",
+    "@types/n3": "^1.10.4",
+    "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^8.5.0",
+    "mocha": "^9.1.3",
+    "standard-version": "^9.3.2",
+    "typescript": "4.5.4",
+    "@typescript-eslint/parser": "^5.8.0",
+    "@typescript-eslint/eslint-plugin": "^5.8.0",
+    "ts-node": "^10.4.0"
   },
   "scripts": {
-    "lint": "eslint .",
-    "test": "mocha",
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "lint": "eslint src",
+    "test": "mocha -r ts-node/register test/**/*.test.ts",
     "test:up": "cd test && docker-compose up -d",
     "test:down": "cd test && docker-compose down",
     "test:ps": "cd test && docker-compose ps",

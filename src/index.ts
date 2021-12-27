@@ -1,41 +1,26 @@
-// @ts-check
+import {merge} from "ramda";
+import {SPARQL} from "./sparql";
+import {checkPatternExistence, createQuads, deleteQuads, deleteSparql, querySparql, readQuads, updateQuad, updateSparql} from "./middleware";
+import {BlazegraphConfig, ZBlazegraphConfig} from "./types";
 
-const { merge } = require("ramda")
-const { SPARQL } = require("./sparql")
-const {
-  deleteSparql,
-  querySparql,
-  updateSparql,
-  createQuads,
-  checkPatternExistence,
-  deleteQuads,
-  readQuads,
-  updateQuad
-} = require("./middleware")
-
-/** @typedef {{hostname?:string, port?:number, namespace?:string, blazename?:string}} BlazegraphConfig */
-/** @type {BlazegraphConfig} */
-const defaultConfig = {
+const defaultConfig: BlazegraphConfig = {
   hostname: "localhost",
   port: 9999,
   namespace: "kb",
   blazename: "bigdata" // it was 'blazegraph' in older versions
 }
 
-// helper function that wraps other functons as template literals
-/**
- * @template T
- * @param {(a:string) => Promise<T>} fn
- */
-const tmpl = fn => /** @param {TemplateStringsArray} str */ (str, ...vars) => {
-  const sparql = SPARQL(str, ...vars)
-  return fn(sparql)
-}
+/** Helper function that wraps other functions as template literals. */
+const tmpl = <T>(fn: (a: string) => Promise<T>) =>
+  (str: TemplateStringsArray, ...vars: string[]) => {
+    const sparql = SPARQL(str, ...vars)
+    return fn(sparql)
+  }
 
-/** @param {BlazegraphConfig} userConfig */
-const prepareBlaze = (userConfig = {}) => {
-  const config = merge(defaultConfig, userConfig)
-  const { hostname, port, blazename, namespace } = config
+export const prepareBlaze = (userConfig: Partial<BlazegraphConfig> = {}) => {
+  const config = ZBlazegraphConfig.parse(merge(defaultConfig, userConfig));
+
+  const {hostname, port, blazename, namespace} = config
   const blazeUri = `http://${hostname}:${port}/${blazename}/namespace/${namespace}/sparql`
 
   return {
@@ -61,8 +46,4 @@ const prepareBlaze = (userConfig = {}) => {
     updateQuad: updateQuad(blazeUri),
     checkPatternExistence: checkPatternExistence(blazeUri)
   }
-}
-
-module.exports = {
-  prepareBlaze
 }

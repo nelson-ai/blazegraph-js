@@ -1,6 +1,7 @@
 gitignore
 .vscode
 .idea
+/dist/
 
 # Logs
 logs

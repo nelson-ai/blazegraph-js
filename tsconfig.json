@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2015",
+    "declaration": true,
+    "outDir": "./dist",
+    "allowJs": true,
+    "removeComments": true,
+    "experimentalDecorators": false,
+    "noImplicitReturns": true,
+    "noImplicitAny": false,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "noFallthroughCasesInSwitch": true,
+  },
+  "include": [
+    "src/**/*",
+    "test/**/*",
+  ],
+  "exclude": [
+    "node_modules",
+    "build"
+  ]
+}

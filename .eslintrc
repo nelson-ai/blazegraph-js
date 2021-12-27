@@ -1,6 +1,13 @@
 {
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "@typescript-eslint"
+  ],
   "extends": [
-    "eslint:recommended"
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended"
   ],
   "env": {
     "mocha": true,
@@ -8,7 +15,8 @@
     "node": true
   },
   "parserOptions": {
-    "ecmaVersion": 2018
+    "ecmaVersion": 2020,
+    "sourceType": "module"
   },
   "rules": {
     "indent": [
@@ -23,5 +31,9 @@
       "error",
       "double"
     ]
-  }
+  },
+  "ignorePatterns": [
+    "node_modules",
+    "build"
+  ]
 }

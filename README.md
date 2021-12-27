@@ -1,4 +1,4 @@
-# Blazegraph JavaScript API
+# Blazegraph Javascript API (Written in Typescript)
 
 [Blazegraph](https://www.blazegraph.com/) JavaScript API.
 This version has been completely rewritten and the new API is still evolving.
