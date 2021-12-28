@@ -25,12 +25,14 @@
     "n3": "1.12.2",
     "ramda": "0.27.1",
     "ts-invariant": "0.9.4",
+    "immer": "^9.0.7",
     "zod": "3.11.6"
   },
   "devDependencies": {
     "@types/chai": "^4.3.0",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.11.7",
+    "@types/ramda": "^0.27.62",
     "@types/chai-as-promised": "^7.1.4",
     "@types/n3": "^1.10.4",
     "chai": "^4.3.4",
