@@ -1,16 +1,17 @@
 {
   "name": "blazegraph",
-  "version": "0.2.0",
+  "version": "3.0.6",
   "description": "Blazegraph JavaScript API",
   "license": "MIT",
   "author": "David Hérault <dherault@nelson.ai> (https://github.com/dherault)",
   "contributors": [
     "Viliam Simko <viliam.simko@gmail.com> (https://github.com/vsimko)"
   ],
-  "main": "src/index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\""
-  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nelson-ai/blazegraph-js.git"
@@ -20,12 +21,41 @@
   },
   "homepage": "https://github.com/nelson-ai/blazegraph-js#readme",
   "dependencies": {
-    "n3": "^0.9.0",
-    "request": "^2.79.0"
+    "axios": "0.24.0",
+    "n3": "1.12.2",
+    "ramda": "0.27.1",
+    "ts-invariant": "0.9.4",
+    "immer": "^9.0.7",
+    "zod": "3.11.6"
   },
   "devDependencies": {
-    "eslint": "^3.13.1",
-    "eslint-config-nelson": "^0.2.0",
-    "eslint-plugin-import": "^2.2.0"
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.11.7",
+    "@types/ramda": "^0.27.62",
+    "@types/chai-as-promised": "^7.1.4",
+    "@types/n3": "^1.10.4",
+    "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^8.5.0",
+    "mocha": "^9.1.3",
+    "standard-version": "^9.3.2",
+    "typescript": "4.5.4",
+    "@typescript-eslint/parser": "^5.8.0",
+    "@typescript-eslint/eslint-plugin": "^5.8.0",
+    "ts-node": "^10.4.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig-build.json",
+    "clean": "rimraf dist",
+    "lint": "eslint src",
+    "test": "mocha -r ts-node/register test/**/*.test.ts",
+    "test:up": "cd test && docker-compose up -d",
+    "test:down": "cd test && docker-compose down",
+    "test:ps": "cd test && docker-compose ps",
+    "release": "standard-version",
+    "release:push": "git push --follow-tags origin master",
+    "release:npm": "yarn publish",
+    "git-cred": "git config credential.helper store"
   }
 }
