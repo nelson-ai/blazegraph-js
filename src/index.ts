@@ -1,7 +1,7 @@
 import {merge} from "ramda";
 import {SPARQL} from "./sparql";
 import {checkPatternExistence, createQuads, deleteQuads, deleteSparql, querySparql, readQuads, updateQuad, updateSparql} from "./middleware";
-import {BlazegraphConfig, ZBlazegraphConfig} from "./types";
+import {BlazegraphConfig, ZBlazegraphConfig} from "./schemas/types";
 
 const defaultConfig: BlazegraphConfig = {
   hostname: "localhost",
@@ -32,7 +32,7 @@ export const prepareBlaze = (userConfig: Partial<BlazegraphConfig> = {}) => {
     /** Use as: SELECT`your sparql query` = querySparql without inferred triples. */
     SELECT: tmpl(querySparql(blazeUri)),
 
-    /** Use as: SELECT`your sparql query` = querySparql with inferred triples.  */
+    /** Use as: SELECT`your sparql query` = querySparql with inferred triples. */
     SELECTWI: tmpl(str => querySparql(blazeUri)(str, true)),
 
     deleteSparql: deleteSparql(blazeUri),

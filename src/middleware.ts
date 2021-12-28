@@ -1,26 +1,29 @@
-import {compose, replace} from "ramda";
+import {pipe, replace} from "ramda";
 import invariant from "ts-invariant";
 import axios, {AxiosRequestConfig} from "axios";
 import {Literal, Parser, Quad} from "n3";
 import {
-  BindingResult,
   IRI,
   PartialGraphPattern,
   QuadPattern,
   UpdateQuadPattern,
   ZPartialGraphPattern,
   ZQuadPattern,
-  ZSparqlQueryResults,
   ZUpdateQuadPattern
-} from "./types";
+} from "./schemas/types";
 import {z, ZodType} from "zod";
+import {BindingResult, ZSparqlQueryResult} from "./schemas/ZSparqlQueryResult";
+import {CheckPatternExistenceResult, ZCheckPatternExistenceResult} from "./schemas/ZCheckPatternExistenceResult";
+import {CreateQuadsResult, ZCreateQuadsResult} from "./schemas/ZCreateQuadsResult";
+import {UpdateQuadsResult, ZUpdateQuadsResult} from "./schemas/ZUpdateQuadsResult";
+import {DeleteQuadsResult, ZDeleteQuadsResult} from "./schemas/ZDeleteQuadsResult";
 
 const trigMimeType = "application/x-trig; charset=utf-8";
 
 /**
  * Simple promise wrapper around the 'axios' library
  */
-async function makeRequest<T>(options: AxiosRequestConfig, resultSchema: ZodType<T>): Promise<T> {
+async function makeRequest<In, Def, Out>(options: AxiosRequestConfig, resultSchema: ZodType<Out, Def, In>): Promise<Out> {
   const results = await axios({
     ...options,
     validateStatus: status => status === 200
@@ -29,11 +32,14 @@ async function makeRequest<T>(options: AxiosRequestConfig, resultSchema: ZodType
   return resultSchema.parse(results.data);
 }
 
-/** URI encodes a SPARQL query */
-const encodeQuery: (input: IRI | Literal) => string = compose(
+const removeSingleLineComments = replace(/(^|\n)\s*#.*(\n|$)/g, "");
+const removeLongSpaces = replace(/[\t ]+/g, " ");
+
+const urlEncodeSparqlString = pipe(
+  (x: IRI | Literal) => String(x), // TODO: is this really necessary?
+  removeSingleLineComments,
+  removeLongSpaces,
   encodeURIComponent,
-  replace(/[\t ]+/g, " "), // remove long spaces
-  replace(/(^|\n)\s*#.*(\n|$)/g, "") // remove single line comments
 )
 
 function urlParam(name: string, val: IRI | Literal): string {
@@ -55,9 +61,8 @@ const urlEncodePattern = (p: Partial<QuadPattern>) => {
 
 /** Serializes a triple or quad into the trig format. */
 const serializeTrig = ({subject, predicate, object, graph}: QuadPattern) => {
-  const s = `${subject} ${predicate} ${object} .`
-
-  return graph ? `${graph} { ${s} }` : s;
+  const str = `${subject} ${predicate} ${object} .`
+  return graph ? `${graph} { ${str} }` : str;
 }
 
 /* -----------
@@ -72,9 +77,9 @@ export const querySparql = (blazeUrl: string) =>
   async (query: string, withInferred = false): Promise<BindingResult[]> => {
     const data = await makeRequest({
       method: "GET",
-      url: `${blazeUrl}?query=${encodeQuery(query)}&includeInferred=${withInferred}`,
+      url: `${blazeUrl}?query=${urlEncodeSparqlString(query)}&includeInferred=${withInferred}`,
       headers: {Accept: "application/json"}
-    }, ZSparqlQueryResults);
+    }, ZSparqlQueryResult);
 
     return data.results.bindings;
   };
@@ -112,7 +117,7 @@ export const updateSparql = (blazeUrl: string) =>
   async (query: string): Promise<CommitStats> => {
     const result = await makeRequest({
       method: "POST",
-      url: `${blazeUrl}?update=${encodeQuery(query)}`,
+      url: `${blazeUrl}?update=${urlEncodeSparqlString(query)}`,
       headers: {Accept: "application/json"},
     }, z.string().nonempty());
 
@@ -122,25 +127,22 @@ export const updateSparql = (blazeUrl: string) =>
 /**
  * Delete statements using a SPARQL CONSTRUCT or DESCRIBE query.
  * NOTE: this does not allow to perform any other SPARQL query.
- * TODO: this function has never been tested
  */
 export const deleteSparql = (blazeUrl: string) =>
   async (query: string): Promise<BindingResult[]> => {
     const data = await makeRequest({
       method: "DELETE",
-      url: `${blazeUrl}?query=${encodeQuery(query)}`
-    }, ZSparqlQueryResults);
+      url: `${blazeUrl}?query=${urlEncodeSparqlString(query)}`
+    }, ZSparqlQueryResult);
 
     return data.results.bindings;
   };
-
-const ZCheckPatternExistenceResult = z.string().nonempty();
 
 /**
  * Returns true is some quads match a pattern.
  */
 export const checkPatternExistence = (blazeUrl: string) =>
-  async (input: PartialGraphPattern, withInferred = false): Promise<boolean> => {
+  async (input: PartialGraphPattern, withInferred = false): Promise<CheckPatternExistenceResult> => {
     const parse = ZPartialGraphPattern.parse(input);
 
     // TODO: simplify this block
@@ -151,11 +153,7 @@ export const checkPatternExistence = (blazeUrl: string) =>
       }
     }
 
-    const result = await makeRequest({url: fullUrl}, ZCheckPatternExistenceResult);
-    const matched = /<data result="(\w*)"/.exec(result);
-    if (matched === null) return false;
-
-    return matched[1] === "true";
+    return await makeRequest({url: fullUrl}, ZCheckPatternExistenceResult);
   };
 
 /** Read all quads matching a pattern. */
@@ -193,7 +191,7 @@ export const readQuads = (blazeUrl: string) =>
 
 /** Create one or more quads. */
 export const createQuads = (blazeUrl: string) =>
-  async (input: QuadPattern | unknown | (QuadPattern | unknown)[]): Promise<string> => {
+  async (input: QuadPattern | QuadPattern[]): Promise<CreateQuadsResult> => {
     const inputs = Array.isArray(input) ? input : [input];
     const parse = ZQuadPattern.array().parse(inputs);
 
@@ -202,13 +200,13 @@ export const createQuads = (blazeUrl: string) =>
       method: "POST",
       headers: {"Content-Type": trigMimeType},
       data: parse.map(serializeTrig).join("")
-    }, z.string());
+    }, ZCreateQuadsResult);
   };
 
 /** Update a quad knowing its old statement. */
 export const updateQuad = (blazeUrl: string) =>
-  async (input: UpdateQuadPattern | unknown): Promise<string> => {
-    const parse = ZUpdateQuadPattern.parse(input);
+  async (input: UpdateQuadPattern | unknown): Promise<UpdateQuadsResult> => {
+    const parse = ZUpdateQuadPattern.parse(input); // TODO: do we need to check the input at runtime ?
 
     const oldQuad = serializeTrig({...parse, object: parse.oldObject})
     const newQuad = serializeTrig(parse);
@@ -221,12 +219,13 @@ export const updateQuad = (blazeUrl: string) =>
         remove: {options, value: oldQuad},
         add: {options, value: newQuad}
       }
-    }, z.string());
-  }
+    }, ZUpdateQuadsResult);
+  };
+
 
 /** Delete all quads matching a pattern. */
 export const deleteQuads = (blazeUrl: string) =>
-  async (input: Partial<QuadPattern>): Promise<string> => {
+  async (input: Partial<QuadPattern>): Promise<DeleteQuadsResult> => {
     const parse = ZQuadPattern.partial().parse(input);
 
     const params = urlEncodePattern(parse);
@@ -235,5 +234,5 @@ export const deleteQuads = (blazeUrl: string) =>
     return await makeRequest({
       method: "DELETE",
       url: `${blazeUrl}?${params}`
-    }, z.string());
+    }, ZDeleteQuadsResult);
   }

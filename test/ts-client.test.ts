@@ -3,18 +3,15 @@
 import {expect, use as chaiUse} from "chai";
 import chaiAsPromised from "chai-as-promised"
 
-import {compose} from "ramda";
-import {addDelete, addInsert, addPrefix, addUpdate, queryToString, withGraph} from "../src/updater";
+import {pipe} from "ramda";
+import {addDelete, addInsert, addPrefix, addUpdate, createEmptyQuery, queryToString, withGraph} from "../src/updater";
 import {prepareBlaze} from "../src";
 import {SPARQL} from "../src/sparql";
-import {TriplePattern} from "../src/types";
+import {TriplePattern} from "../src/schemas/types";
 
 chaiUse(chaiAsPromised);
 
 const {SELECT, UPDATE, blazeUri, deleteQuads, readQuads} = prepareBlaze(); // use defaults
-
-// test utilities
-const expectToContain = (str: string) => (result: string) => expect(result).contains(str);
 
 describe("blazegraph client", () => {
   it("should use proper default blazeUrl", () => {
@@ -80,7 +77,7 @@ describe("blazegraph client", () => {
       object: "\"Hello\""
     });
 
-    expect(result).contains("modified");
+    expect(result).contains.keys("modified", "milliseconds");
   })
 
   it("should reject invalid IRI", async () => {
@@ -110,27 +107,31 @@ describe("blazegraph client", () => {
 })
 
 describe("sparql builder", () => {
-  it("can compose query", () => {
-    compose(
-      expectToContain(SPARQL`
-        PREFIX rdf: <http://rdf>
-        PREFIX rdfs: <http://rdfs>
-        WITH http://mygraph
-        DELETE { :s :p :o2; :p ?x1; :p ?x2 }
-        INSERT { :s :p :o3; :p :o2; :p :o1; :p :o9; :p :o8 }
-        OPTIONAL { :s :p ?x1 }
-        OPTIONAL { :s :p ?x2 }
-      `),
-      queryToString,
-      addPrefix("rdfs", "http://rdfs"),
-      addPrefix("rdf", "http://rdf"),
-      withGraph("http://mygraph"),
-      addUpdate({subject: ":s", predicate: ":p", object: ":o8"}),
-      addUpdate({subject: ":s", predicate: ":p", object: ":o9"}),
-      addInsert({subject: ":s", predicate: ":p", object: ":o1"}),
-      addInsert({subject: ":s", predicate: ":p", object: ":o2"}),
+  it("can compose a query", () => {
+    const pipeline = pipe(
+      createEmptyQuery,
+      addDelete({subject: ":s", predicate: ":p", object: ":o2"}),
       addInsert({subject: ":s", predicate: ":p", object: ":o3"}),
-      addDelete({subject: ":s", predicate: ":p", object: ":o2"})
-    )()
+      addInsert({subject: ":s", predicate: ":p", object: ":o2"}),
+      addInsert({subject: ":s", predicate: ":p", object: ":o1"}),
+      addUpdate({subject: ":s", predicate: ":p", object: ":o9"}),
+      addUpdate({subject: ":s", predicate: ":p", object: ":o8"}),
+      withGraph("http://mygraph"),
+      addPrefix("rdf", "http://rdf"),
+      addPrefix("rdfs", "http://rdfs"),
+      queryToString
+    )
+
+    const result = pipeline();
+
+    expect(result).to.contain(SPARQL`
+      PREFIX rdf: <http://rdf>
+      PREFIX rdfs: <http://rdfs>
+      WITH http://mygraph
+      DELETE { :s :p :o2; :p ?x1; :p ?x2 }
+      INSERT { :s :p :o3; :p :o2; :p :o1; :p :o9; :p :o8 }
+      OPTIONAL { :s :p ?x1 }
+      OPTIONAL { :s :p ?x2 }
+    `);
   })
 })
